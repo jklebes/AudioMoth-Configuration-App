@@ -497,7 +497,11 @@ function configureDevice () {
     writeLittleEndianBytes(packet, index, 4, Math.round(sendTime.valueOf() / 1000));
     index += 4;
 
-    packet[index++] = settings.gain;
+    packet[index++] = settings.gain1;
+     
+
+    packet[index++] = settings.gain2;
+    
 
     /* If equivalent firmware or unsupported firmware is present, use correct firmware version */
 
@@ -521,7 +525,10 @@ function configureDevice () {
     writeLittleEndianBytes(packet, index, 2, settings.sleepDuration);
     index += 2;
 
-    writeLittleEndianBytes(packet, index, 2, settings.recordDuration);
+    writeLittleEndianBytes(packet, index, 2, settings.recordDurationGain1);
+    index += 2;
+
+    writeLittleEndianBytes(packet, index, 2, settings.recordDurationGain2);
     index += 2;
 
     packet[index++] = ledCheckbox.checked ? 1 : 0;
@@ -632,120 +639,6 @@ function configureDevice () {
     writeLittleEndianBytes(packet, index, 4, latestRecordingTime);
     index += 4;
 
-    let lowerFilter, higherFilter;
-
-    /* Filter settings */
-
-    if (settings.passFiltersEnabled && !settings.frequencyTriggerEnabled) {
-
-        switch (settings.filterType) {
-
-        case 'low':
-            /* Low-pass */
-            lowerFilter = constants.UINT16_MAX;
-            higherFilter = settings.higherFilter / 100;
-            break;
-        case 'band':
-            /* Band-pass */
-            lowerFilter = settings.lowerFilter / 100;
-            higherFilter = settings.higherFilter / 100;
-            break;
-        case 'high':
-            /* High-pass */
-            lowerFilter = settings.lowerFilter / 100;
-            higherFilter = constants.UINT16_MAX;
-            break;
-        case 'none':
-            lowerFilter = 0;
-            higherFilter = 0;
-
-        }
-
-    } else {
-
-        lowerFilter = 0;
-        higherFilter = 0;
-
-    }
-
-    writeLittleEndianBytes(packet, index, 2, lowerFilter);
-    index += 2;
-    writeLittleEndianBytes(packet, index, 2, higherFilter);
-    index += 2;
-
-    /* Amplitude threshold or Goertzel filter frequency can be in this packet index */
-
-    let unionValue;
-
-    const amplitudeThresholdScaleIndex = settings.amplitudeThresholdScaleIndex;
-
-    if (settings.amplitudeThresholdingEnabled) {
-
-        let amplitudeThreshold, percentageAmplitudeThreshold;
-
-        /* Amplitude threshold value is based on the value displayed to the user, rather than the raw position on the slider */
-        /* E.g. 10% selected, threshold = 10% of the max amplitude */
-
-        switch (amplitudeThresholdScaleIndex) {
-
-        case THRESHOLD_SCALE_16BIT:
-            amplitudeThreshold = uiSettings.get16BitAmplitudeThreshold();
-            break;
-
-        case THRESHOLD_SCALE_PERCENTAGE:
-            percentageAmplitudeThreshold = uiSettings.getPercentageAmplitudeThresholdExponentMantissa();
-            amplitudeThreshold = Math.round(32768 * percentageAmplitudeThreshold.mantissa * Math.pow(10, percentageAmplitudeThreshold.exponent) / 100);
-            break;
-
-        case THRESHOLD_SCALE_DECIBEL:
-            amplitudeThreshold = Math.round(32768 * Math.pow(10, uiSettings.getDecibelAmplitudeThreshold() / 20));
-            break;
-
-        }
-
-        unionValue = amplitudeThreshold;
-
-    } else if (settings.frequencyTriggerEnabled && !isOlderSemanticVersion(trueFirmwareVersion, ['1', '8', '0'])) {
-
-        /* If firmware is older than 1.8.0, then frequency thresholding isn't supported, so just send zero */
-
-        unionValue = settings.frequencyTriggerCentreFrequency / 100;
-
-    } else {
-
-        unionValue = 0;
-
-    }
-
-    writeLittleEndianBytes(packet, index, 2, unionValue);
-    index += 2;
-
-    /* Pack values into a single byte */
-
-    /* Whether or not deployment ID is required */
-    const requireAcousticConfig = settings.requireAcousticConfig ? 1 : 0;
-
-    /* Whether to use NiMH/LiPo voltage range for battery level indication */
-    const displayVoltageRange = settings.displayVoltageRange ? 1 : 0;
-
-    /* Minimum threshold duration, voltage range and whether acoustic configuration is required before deployment */
-
-    let minimumThresholdDuration;
-    const minimumThresholdDurations = [0, 1, 2, 5, 10, 15, 30, 60];
-
-    if (settings.amplitudeThresholdingEnabled) {
-
-        minimumThresholdDuration = minimumThresholdDurations[settings.minimumAmplitudeThresholdDuration];
-
-    } else if (settings.frequencyTriggerEnabled && !isOlderSemanticVersion(trueFirmwareVersion, ['1', '8', '0'])) {
-
-        minimumThresholdDuration = minimumThresholdDurations[settings.minimumFrequencyTriggerDuration];
-
-    } else {
-
-        minimumThresholdDuration = 0;
-
-    }
 
     let packedValue0 = requireAcousticConfig & 0b1;
     packedValue0 |= (displayVoltageRange & 0b1) << 1;
@@ -753,114 +646,21 @@ function configureDevice () {
 
     packet[index++] = packedValue0;
 
-    if (settings.amplitudeThresholdingEnabled) {
-
-        let enableAmplitudeThresholdDecibelScale = 0;
-        let enableAmplitudeThresholdPercentageScale = 0;
-
-        switch (amplitudeThresholdScaleIndex) {
-
-        case THRESHOLD_SCALE_16BIT:
-            enableAmplitudeThresholdDecibelScale = 1;
-            enableAmplitudeThresholdPercentageScale = 1;
-            break;
-
-        case THRESHOLD_SCALE_PERCENTAGE:
-            enableAmplitudeThresholdDecibelScale = 0;
-            enableAmplitudeThresholdPercentageScale = 1;
-            break;
-
-        case THRESHOLD_SCALE_DECIBEL:
-            enableAmplitudeThresholdDecibelScale = 1;
-            enableAmplitudeThresholdPercentageScale = 0;
-            break;
-
-        }
-
-        /* Decibel-scale amplitude threshold */
-
-        const amplitudeThresholdDecibels = (amplitudeThresholdScaleIndex === THRESHOLD_SCALE_DECIBEL) ? Math.abs(uiSettings.getDecibelAmplitudeThreshold()) : 0;
-
-        let packedValue1 = enableAmplitudeThresholdDecibelScale & 0b1;
-        packedValue1 |= (amplitudeThresholdDecibels & 0b1111111) << 1;
-
-        packet[index++] = packedValue1;
-
-        /* Percentage-scale amplitude threshold */
-
-        let amplitudeThresholdPercentageExponent, amplitudeThresholdPercentageMantissa;
-
-        if (amplitudeThresholdScaleIndex === THRESHOLD_SCALE_PERCENTAGE) {
-
-            const percentageAmplitudeThreshold = uiSettings.getPercentageAmplitudeThresholdExponentMantissa();
-
-            amplitudeThresholdPercentageExponent = percentageAmplitudeThreshold.exponent;
-            amplitudeThresholdPercentageMantissa = percentageAmplitudeThreshold.mantissa;
-
-        } else {
-
-            amplitudeThresholdPercentageExponent = 0;
-            amplitudeThresholdPercentageMantissa = 0;
-
-        }
-
-        let packedValue2 = enableAmplitudeThresholdPercentageScale & 0b1;
-        packedValue2 |= (amplitudeThresholdPercentageMantissa & 0b1111) << 1;
-        packedValue2 |= (amplitudeThresholdPercentageExponent & 0b111) << 5;
-
-        packet[index++] = packedValue2;
-
-    } else if (settings.frequencyTriggerEnabled && !isOlderSemanticVersion(trueFirmwareVersion, ['1', '8', '0'])) {
-
-        /* If firmware is older than 1.8.0, then frequency thresholding isn't supported, so just send zeroes */
-
-        const frequencyTriggerWindowLength = Math.log2(settings.frequencyTriggerWindowLength);
-        const frequencyTriggerThreshold = uiSettings.getFrequencyFilterThresholdExponentMantissa();
-
-        let packedValue1 = frequencyTriggerWindowLength & 0b1111;
-        packedValue1 |= (frequencyTriggerThreshold.mantissa & 0b1111) << 4;
-
-        packet[index++] = packedValue1;
-
-        const packedValue2 = frequencyTriggerThreshold.exponent & 0b111;
-
-        packet[index++] = packedValue2;
-
-    } else {
-
-        packet[index++] = 0;
-        packet[index++] = 0;
-
-    }
-
     /* Whether to use NiMH/LiPo voltage range for battery level indication */
     const energySaverModeEnabled = settings.energySaverModeEnabled ? 1 : 0;
 
     /* Whether to turn off the 48Hz DC blocking filter which is on by default */
     const disable48DCFilter = settings.disable48DCFilter ? 1 : 0;
 
-    /* Whether to allow the time to be updated via GPS */
-    const timeSettingFromGPSEnabled = settings.timeSettingFromGPSEnabled ? 1 : 0;
-
-    /* Whether to check the magnetic switch to start a delayed schedule */
-    const magneticSwitchEnabled = settings.magneticSwitchEnabled ? 1 : 0;
-
     /* Whether to enable the low gain range */
     const lowGainRangeEnabled = settings.lowGainRangeEnabled ? 1 : 0;
-
-    /* Whether to enable the Goertzel frequency filter */
-    const enableFrequencyFilter = settings.frequencyTriggerEnabled ? 1 : 0;
 
     /* Whether to create a new folder each day to store files */
     const dailyFolders = settings.dailyFolders ? 1 : 0;
 
     let packedByte3 = (energySaverModeEnabled & 0b1) & 1;
-    packedByte3 |= (disable48DCFilter & 0b1) << 1;
-    packedByte3 |= (timeSettingFromGPSEnabled & 0b1) << 2;
-    packedByte3 |= (magneticSwitchEnabled & 0b1) << 3;
-    packedByte3 |= (lowGainRangeEnabled & 0b1) << 4;
-    packedByte3 |= (enableFrequencyFilter & 0b1) << 5;
-    packedByte3 |= (dailyFolders & 0b1) << 6;
+    packedByte3 |= (lowGainRangeEnabled & 0b1) << 3;
+    packedByte3 |= (dailyFolders & 0b1) << 5;
 
     packet[index++] = packedByte3;
 
@@ -1042,7 +842,7 @@ function updateLifeDisplayOnChange () {
 
     const settings = uiSettings.getSettings();
 
-    lifeDisplay.updateLifeDisplay(sortedPeriods, constants.configurations[settings.sampleRateIndex], settings.recordDuration, settings.sleepDuration, settings.amplitudeThresholdingEnabled, settings.frequencyTriggerEnabled, settings.dutyEnabled, settings.energySaverModeEnabled, settings.timeSettingFromGPSEnabled);
+    lifeDisplay.updateLifeDisplay(sortedPeriods, constants.configurations[settings.sampleRateIndex], settings.recordDurationGain1, settings.recordDurationGain2, settings.sleepDuration,settings.dutyEnabled, settings.energySaverModeEnabled );
 
 }
 
@@ -1077,25 +877,12 @@ function getCurrentConfiguration () {
     const settings = uiSettings.getSettings();
 
     config.sampleRateIndex = settings.sampleRateIndex;
-    config.gain = settings.gain;
-    config.recordDuration = settings.recordDuration;
+    config.gain1 = settings.gain1;
+    config.gain2 = settings.gain2;
+    config.recordDurationGain1 = settings.recordDurationGain1;
+    config.recordDurationGain2 = settings.recordDurationGain2;
     config.sleepDuration = settings.sleepDuration;
     config.dutyEnabled = settings.dutyEnabled;
-
-    config.passFiltersEnabled = settings.passFiltersEnabled;
-    config.filterType = settings.filterType;
-    config.lowerFilter = settings.lowerFilter;
-    config.higherFilter = settings.higherFilter;
-
-    config.amplitudeThresholdingEnabled = settings.amplitudeThresholdingEnabled;
-    config.amplitudeThreshold = settings.amplitudeThreshold;
-    config.minimumAmplitudeThresholdDuration = settings.minimumAmplitudeThresholdDuration;
-
-    config.frequencyTriggerEnabled = settings.frequencyTriggerEnabled;
-    config.frequencyTriggerWindowLength = settings.frequencyTriggerWindowLength;
-    config.frequencyTriggerCentreFrequency = settings.frequencyTriggerCentreFrequency;
-    config.minimumFrequencyTriggerDuration = settings.minimumFrequencyTriggerDuration;
-    config.frequencyTriggerThreshold = settings.frequencyTriggerThreshold;
 
     config.firstRecordingDateEnabled = uiSchedule.isFirstRecordingDateEnabled();
     config.lastRecordingDateEnabled = uiSchedule.isLastRecordingDateEnabled();
@@ -1109,17 +896,11 @@ function getCurrentConfiguration () {
 
     config.displayVoltageRange = settings.displayVoltageRange;
 
-    config.amplitudeThresholdScaleIndex = settings.amplitudeThresholdScaleIndex;
-
     config.energySaverModeEnabled = settings.energySaverModeEnabled;
 
     config.disable48DCFilter = settings.disable48DCFilter;
 
     config.lowGainRangeEnabled = settings.lowGainRangeEnabled;
-
-    config.timeSettingFromGPSEnabled = settings.timeSettingFromGPSEnabled;
-
-    config.magneticSwitchEnabled = settings.magneticSwitchEnabled;
 
     return config;
 
@@ -1151,7 +932,7 @@ electron.ipcRenderer.on('load', () => {
 
     const currentConfig = getCurrentConfiguration();
 
-    saveLoad.loadConfiguration(currentConfig, (timePeriods, ledEnabled, batteryLevelCheckEnabled, sampleRateIndex, gain, dutyEnabled, recordDuration, sleepDuration, localTime, customTimeZoneOffset, firstRecordingDateEnabled, firstRecordingDate, lastRecordingDateEnabled, lastRecordingDate, passFiltersEnabled, filterType, lowerFilter, higherFilter, amplitudeThresholdingEnabled, amplitudeThreshold, frequencyTriggerEnabled, frequencyTriggerWindowLength, frequencyTriggerCentreFrequency, minimumFrequencyTriggerDuration, frequencyTriggerThreshold, requireAcousticConfig, displayVoltageRange, minimumAmplitudeThresholdDuration, amplitudeThresholdScaleIndex, energySaverModeEnabled, disable48DCFilter, lowGainRangeEnabled, timeSettingFromGPSEnabled, magneticSwitchEnabled, dailyFolders) => {
+    saveLoad.loadConfiguration(currentConfig, (timePeriods, ledEnabled, batteryLevelCheckEnabled, sampleRateIndex, gain1, gain2, dutyEnabled, recordDurationGain1, recordDurationGain2, sleepDuration, localTime, customTimeZoneOffset, firstRecordingDateEnabled, firstRecordingDate, lastRecordingDateEnabled, lastRecordingDate, requireAcousticConfig, displayVoltageRange, energySaverModeEnabled, disable48DCFilter, lowGainRangeEnabled, dailyFolders) => {
 
         document.activeElement.blur();
 
@@ -1226,31 +1007,17 @@ electron.ipcRenderer.on('load', () => {
 
         const settings = {
             sampleRateIndex,
-            gain,
+            gain1,
+            gain2,
             dutyEnabled,
-            recordDuration,
+            recordDurationGain1,
+            recordDurationGain2,
             sleepDuration,
-            passFiltersEnabled,
-            filterType,
-            lowerFilter,
-            higherFilter,
-            amplitudeThresholdingEnabled,
-            amplitudeThreshold,
-            frequencyTriggerEnabled,
-            frequencyTriggerWindowLength,
-            frequencyTriggerCentreFrequency,
-            minimumFrequencyTriggerDuration,
-            frequencyTriggerThreshold,
-            requireAcousticConfig,
             dailyFolders,
             displayVoltageRange,
-            minimumAmplitudeThresholdDuration,
-            amplitudeThresholdScaleIndex,
             energySaverModeEnabled,
             disable48DCFilter,
             lowGainRangeEnabled,
-            timeSettingFromGPSEnabled,
-            magneticSwitchEnabled
         };
 
         uiSettings.fillUI(settings);

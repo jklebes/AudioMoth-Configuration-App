@@ -122,11 +122,6 @@ exports.oldConfigurations = [{
     sampleRateDivider: 4
 }];
 
-/* GPS energy consumption */
-
-exports.GPS_FIX_TIME = 1.0 / 60.0;
-exports.GPS_FIX_CONSUMPTION = 30.0;
-
 /* Packet lengths for each version */
 
 exports.packetLengthVersions = [{

@@ -71,14 +71,16 @@ typedef struct {
 
 typedef struct {
     uint32_t time;
-    AM_gainSetting_t gain;
+    AM_gainSetting_t gain1;
+    AM_gainSetting_t gain2;
     uint8_t clockDivider;
     uint8_t acquisitionCycles;
     uint8_t oversampleRate;
     uint32_t sampleRate;
     uint8_t sampleRateDivider;
     uint16_t sleepDuration;
-    uint16_t recordDuration;
+    uint16_t recordDurationGain1;
+    uint16_t recordDurationGain2;
     uint8_t enableLED;
     uint8_t activeStartStopPeriods;
     startStopPeriod_t startStopPeriods[MAX_START_STOP_PERIODS];
@@ -89,35 +91,11 @@ typedef struct {
     uint8_t disableSleepRecordCycle;
     uint32_t earliestRecordingTime;
     uint32_t latestRecordingTime;
-    uint16_t lowerFilterFreq;
-    uint16_t higherFilterFreq;
-    union {
-        uint16_t amplitudeThreshold;
-        uint16_t goertzelFilterFrequency;
-    };
     uint8_t requireAcousticConfiguration : 1;
     AM_batteryLevelDisplayType_t batteryLevelDisplayType : 1;
-    uint8_t minimumTriggerDuration : 6;
-    union {
-        struct {
-            uint8_t goertzelFilterWindowLengthShift : 4;
-            uint8_t goertzelFilterThresholdPercentageMantissa : 4;
-            int8_t goertzelFilterThresholdPercentageExponent : 3;
-        };
-        struct {
-            uint8_t enableAmplitudeThresholdDecibelScale : 1;
-            uint8_t amplitudeThresholdDecibels : 7;
-            uint8_t enableAmplitudeThresholdPercentageScale : 1;
-            uint8_t amplitudeThresholdPercentageMantissa : 4;
-            int8_t amplitudeThresholdPercentageExponent : 3;
-        };
-    };
     uint8_t enableEnergySaverMode : 1;
     uint8_t disable48HzDCBlockingFilter : 1;
-    uint8_t enableTimeSettingFromGPS : 1;
-    uint8_t enableMagneticSwitch : 1;
     uint8_t enableLowGainRange : 1;
-    uint8_t enableGoertzelFilter : 1;
     uint8_t enableDailyFolders : 1;
 } configSettings_t;
 
@@ -169,16 +147,11 @@ exports.read = (packet) => {
     const earliestRecordingTime = audiomoth.convertFourBytesFromBufferToDate(packet, 44);
     const latestRecordingTime = audiomoth.convertFourBytesFromBufferToDate(packet, 48);
 
-    const lowerFilterFreq = twoBytesToNumber(packet, 52);
-    const higherFilterFreq = twoBytesToNumber(packet, 54);
-
     const packedByte0 = packet[58];
 
     const requireAcousticConfig = packedByte0 & 1;
 
     const displayVoltageRange = (packedByte0 >> 1) & 1;
-
-    const minimumTriggerDuration = (packedByte0 >> 2) & 0b111111;
 
     /* Read remaining settings */
 
@@ -188,90 +161,10 @@ exports.read = (packet) => {
 
     const disable48DCFilter = (packedByte3 >> 1) & 1;
 
-    const timeSettingFromGPSEnabled = (packedByte3 >> 2) & 1;
-
-    const magneticSwitchEnabled = (packedByte3 >> 3) & 1;
-
     const lowGainRangeEnabled = (packedByte3 >> 4) & 1;
-
-    const enableFrequencyFilter = (packedByte3 >> 5) & 1;
 
     const dailyFolders = (packedByte3 >> 6) & 1;
 
-    /* Indices contain either amplitude or frequency threshold, so use enableFrequencyFilter to tell which is which */
-
-    const packedByte1 = packet[59];
-    const packedByte2 = packet[60];
-
-    let amplitudeThreshold = 0;
-    let goertzelFilterFrequency = 0;
-
-    let goertzelFilterWindowLengthShift, goertzelFilterThresholdPercentageMantissa, goertzelFilterThresholdPercentageExponent, goertzelFilterThresholdPercentage;
-
-    let enableAmplitudeThresholdDecibelScale, amplitudeThresholdDecibel;
-    let enableAmplitudeThresholdPercentageScale, amplitudeThresholdPercentageMantissa, amplitudeThresholdPercentageExponent, amplitudeThresholdPercentage, amplitudeThresholdScale;
-
-    if (enableFrequencyFilter) {
-
-        goertzelFilterFrequency = twoBytesToNumber(packet, 56);
-        goertzelFilterFrequency *= 100;
-
-        /* Frequency threshold */
-
-        goertzelFilterWindowLengthShift = packedByte1 & 0b1111;
-        goertzelFilterWindowLengthShift = 1 << goertzelFilterWindowLengthShift;
-
-        goertzelFilterThresholdPercentageMantissa = (packedByte1 >> 4) & 0b1111;
-
-        goertzelFilterThresholdPercentageExponent = packedByte2 & 0b111;
-        goertzelFilterThresholdPercentageExponent = goertzelFilterThresholdPercentageExponent < 0b100 ? goertzelFilterThresholdPercentageExponent : goertzelFilterThresholdPercentageExponent - 0b1000;
-
-        goertzelFilterThresholdPercentage = goertzelFilterThresholdPercentageMantissa * Math.pow(10, goertzelFilterThresholdPercentageExponent);
-
-    } else {
-
-        amplitudeThreshold = twoBytesToNumber(packet, 56);
-
-        /* Amplitude threshold decibel scale */
-
-        /* Read bottom 7 bits */
-
-        enableAmplitudeThresholdDecibelScale = packedByte1 & 1;
-
-        amplitudeThresholdDecibel = -1 * ((packedByte1 >> 1) & 0b1111111);
-
-        /* Amplitude threshold percentage scale */
-
-        enableAmplitudeThresholdPercentageScale = packedByte2 & 1;
-
-        /* Read the percentage value as a 4-bit mantissa and a 3-bit exponent */
-
-        amplitudeThresholdPercentageMantissa = (packedByte2 >> 1) & 0b1111;
-
-        /* Read final 3 bits and read as 3-bit two's complement */
-
-        amplitudeThresholdPercentageExponent = (packedByte2 >> 5) & 0b111;
-        amplitudeThresholdPercentageExponent = amplitudeThresholdPercentageExponent < 0b100 ? amplitudeThresholdPercentageExponent : amplitudeThresholdPercentageExponent - 0b1000;
-
-        amplitudeThresholdPercentage = formatPercentage(amplitudeThresholdPercentageMantissa, amplitudeThresholdPercentageExponent) + '%';
-
-        /* Which amplitude threshold scale should be displayed */
-
-        if (enableAmplitudeThresholdPercentageScale === 1 && enableAmplitudeThresholdDecibelScale === 0) {
-
-            amplitudeThresholdScale = 'Percentage';
-
-        } else if (enableAmplitudeThresholdDecibelScale === 1 && enableAmplitudeThresholdPercentageScale === 0) {
-
-            amplitudeThresholdScale = 'Decibel';
-
-        } else {
-
-            amplitudeThresholdScale = '16-Bit';
-
-        }
-
-    }
 
     /* Display configuration */
 
@@ -280,7 +173,8 @@ exports.read = (packet) => {
     console.log('TimeZone Hours:', timeZoneHours);
     console.log('TimeZone Minutes:', timeZoneMinutes);
 
-    console.log('Gain:', gain);
+    console.log('Gain1:', gain1);
+    console.log('Gain2:', gain2);
     console.log('Clock divider:', clockDivider);
     console.log('Acquisition cycles:', acquisitionCycles);
     console.log('Oversample rate:', oversampleRate);
@@ -289,7 +183,8 @@ exports.read = (packet) => {
 
     console.log('Enable sleep/record cyclic recording:', disableSleepRecordCycle === 0);
     console.log('Sleep duration:', sleepDuration);
-    console.log('Recording duration:', recordDuration);
+    console.log('Recording duration Gain1:', recordDurationGain1);
+    console.log('Recording duration Gain2:', recordDurationGain2);
 
     console.log('Enable LED:', enableLED === 1);
     console.log('Enable battery level indication:', disableBatteryLevelDisplay === 0);
@@ -308,65 +203,6 @@ exports.read = (packet) => {
     console.log('Earliest recording time:', formatDate(earliestRecordingTime));
     console.log('Latest recording time:', formatDate(latestRecordingTime));
 
-    if (lowerFilterFreq === constants.UINT16_MAX) {
-
-        // Low-pass
-        console.log('Low-pass filter set at:', higherFilterFreq / 10, 'kHz');
-
-    } else if (higherFilterFreq === constants.UINT16_MAX) {
-
-        // High-pass
-        console.log('High-pass filter set at:', lowerFilterFreq / 10, 'kHz');
-
-    } else if (lowerFilterFreq === 0 && higherFilterFreq === 0) {
-
-        // None
-        console.log('Frequency filter disabled');
-
-    } else {
-
-        // Band-pass
-        console.log('Band-pass filter set at:', lowerFilterFreq / 10, 'kHz -', higherFilterFreq / 10, 'kHz');
-
-    }
-
-    console.log('Minimum trigger duration:', minimumTriggerDuration);
-
-    if (enableFrequencyFilter) {
-
-        console.log('Goertzel filter window length:', goertzelFilterWindowLengthShift);
-
-        console.log('Goertzel filter frequency:', goertzelFilterFrequency / 1000, 'kHz');
-
-        console.log('Frequency filter threshold mantissa:', goertzelFilterThresholdPercentageMantissa);
-
-        console.log('Frequency filter threshold exponent:', goertzelFilterThresholdPercentageExponent);
-
-        console.log('Frequency filter threshold:', goertzelFilterThresholdPercentage);
-
-    } else {
-
-        console.log('Amplitude threshold percentage flag:', (enableAmplitudeThresholdPercentageScale === 1));
-        console.log('Amplitude threshold decibel flag:', (enableAmplitudeThresholdDecibelScale === 1));
-
-        console.log('Amplitude threshold (16-bit):', amplitudeThreshold);
-
-        if (amplitudeThresholdScale === 'Percentage') {
-
-            console.log('Percentage exponent:', amplitudeThresholdPercentageExponent);
-            console.log('Percentage mantissa:', amplitudeThresholdPercentageMantissa);
-            console.log('Amplitude threshold (percentage):', amplitudeThresholdPercentage);
-
-        } else if (amplitudeThresholdScale === 'Decibel') {
-
-            console.log('Amplitude threshold (decibels):', amplitudeThresholdDecibel);
-
-        }
-
-        console.log('Displayed amplitude threshold scale:', amplitudeThresholdScale);
-
-    }
-
     console.log('Acoustic configuration required:', requireAcousticConfig === 1);
 
     console.log('Use NiMH/LiPo voltage range for battery level indication:', displayVoltageRange === 1);
@@ -374,10 +210,6 @@ exports.read = (packet) => {
     console.log('Energy saver mode enabled:', energySaverModeEnabled === 1);
 
     console.log('48 Hz DC blocking filter disabled:', disable48DCFilter === 1);
-
-    console.log('GPS clock setting enabled:', timeSettingFromGPSEnabled === 1);
-
-    console.log('Magnetic switch delay enabled:', magneticSwitchEnabled === 1);
 
     console.log('Low gain range enabled: ', lowGainRangeEnabled === 1);
 

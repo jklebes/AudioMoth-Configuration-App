@@ -164,9 +164,9 @@ function getFileSize (sampleRate, sampleRateDivider, secs) {
 
 /* Update storage and energy usage values in life display box */
 
-exports.updateLifeDisplay = (schedule, configuration, recLength, sleepLength, amplitudeThresholdingEnabled, frequencyTriggerEnabled, dutyEnabled, energySaverChecked, gpsEnabled) => {
+exports.updateLifeDisplay = (schedule, configuration, recLength, sleepLength, dutyEnabled, energySaverChecked) => {
 
-    const thresholdingEnabled = amplitudeThresholdingEnabled || frequencyTriggerEnabled;
+    const thresholdingEnabled = false;
 
     /* If no recording periods exist, do not perform energy calculations */
 
@@ -376,13 +376,6 @@ exports.updateLifeDisplay = (schedule, configuration, recLength, sleepLength, am
 
     const sleepEnergyUsage = totalSleepTime * sleepCurrent / 3600;
 
-    let gpsEnergyUsage = 0.0;
-
-    if (gpsEnabled) {
-
-        gpsEnergyUsage = schedule.length * constants.GPS_FIX_TIME * constants.GPS_FIX_CONSUMPTION;
-
-    }
 
     if (thresholdingEnabled) {
 
@@ -398,10 +391,6 @@ exports.updateLifeDisplay = (schedule, configuration, recLength, sleepLength, am
 
         minEnergyUsed = Math.round(minEnergyUsed / minEnergyPrecision) * minEnergyPrecision;
 
-        // Add GPS energy after rounding so it's clear what the effect of the GPS on energy consumption is
-
-        minEnergyUsed += gpsEnergyUsage;
-
         minEnergyUsed = Math.round(minEnergyUsed);
 
         let maxEnergyUsed = 0;
@@ -415,10 +404,6 @@ exports.updateLifeDisplay = (schedule, configuration, recLength, sleepLength, am
         const maxEnergyPrecision = maxEnergyUsed > 100 ? 10 : maxEnergyUsed > 50 ? 5 : maxEnergyUsed > 20 ? 2 : 1;
 
         maxEnergyUsed = Math.round(maxEnergyUsed / maxEnergyPrecision) * maxEnergyPrecision;
-
-        // Add GPS energy after rounding so it's clear what the effect of the GPS on energy consumption is
-
-        maxEnergyUsed += gpsEnergyUsage;
 
         maxEnergyUsed = Math.round(maxEnergyUsed);
 
@@ -437,10 +422,6 @@ exports.updateLifeDisplay = (schedule, configuration, recLength, sleepLength, am
         const energyPrecision = energyUsed > 100 ? 10 : energyUsed > 50 ? 5 : energyUsed > 20 ? 2 : 1;
 
         energyUsed = Math.round(energyUsed / energyPrecision) * energyPrecision;
-
-        // Add GPS energy after rounding so it's clear what the effect of the GPS on energy consumption is
-
-        energyUsed += gpsEnergyUsage;
 
         energyUsed = Math.round(energyUsed);
 
