@@ -15,21 +15,28 @@ const splitDurationInput = require('./splitDurationInput.js');
 /* UI components */
 
 const sampleRadioButtons = document.getElementsByName('sample-rate-radio');
-const gainRadioButtons = document.getElementsByName('gain-radio');
+const gain1RadioButtons = document.getElementsByName('gain1-radio');
+const gain2RadioButtons = document.getElementsByName('gain2-radio');
 
 const dutyCheckBox = document.getElementById('duty-checkbox');
 
 const sleepDurationInput = splitDurationInput.create('sleep-duration-input', 0, true);
-const recordingDurationInput = splitDurationInput.create('recording-duration-input', 1, true);
+const sleepDurationBetweenInput = splitDurationInput.create('sleep-duration-between-input', 0, true);
+const recordingDurationGain1Input = splitDurationInput.create('recording-duration-gain1-input', 1, true);
+const recordingDurationGain2Input = splitDurationInput.create('recording-duration-gain2-input', 0, true);
 
 // Define the next elements which tab navigation would jump to. This allows inputs to know whether or not to start from the final field if shift-tabbed to
-const recordingDurationTextInput = splitDurationInput.getTextInput(recordingDurationInput);
-splitDurationInput.setNextElements(sleepDurationInput, [recordingDurationTextInput]);
-const ledCheckbox = document.getElementById('led-checkbox');
-splitDurationInput.setNextElements(recordingDurationInput, [ledCheckbox]);
+const recordingDurationGain1TextInput = splitDurationInput.getTextInput(recordingDurationGain1Input);
+const recordingDurationGain2TextInput = splitDurationInput.getTextInput(recordingDurationGain2Input);
+const sleepDurationBetweenTextInput = splitDurationInput.getTextInput(sleepDurationBetweenInput);
+splitDurationInput.setNextElements(sleepDurationInput, [recordingDurationGain1TextInput]);
+splitDurationInput.setNextElements(recordingDurationGain1Input, [sleepDurationBetweenTextInput]);
+splitDurationInput.setNextElements(sleepDurationBetweenInput, [recordingDurationGain2TextInput]);
 
-const recordingDurationLabel = document.getElementById('recording-duration-label');
+const recordingDurationGain1Label = document.getElementById('recording-duration-gain1-label');
+const recordingDurationGain2Label = document.getElementById('recording-duration-gain2-label');
 const sleepDurationLabel = document.getElementById('sleep-duration-label');
+const sleepDurationBetweenLabel = document.getElementById('sleep-duration-between-label');
 
 const batteryLevelCheckbox = document.getElementById('battery-level-checkbox');
 const voltageRangeCheckBox = document.getElementById('voltage-range-checkbox');
@@ -54,7 +61,6 @@ function addRadioButtonListeners (changeFunction) {
             const sampleRateIndex = getSelectedRadioValue('sample-rate-radio');
             const sampleRate = constants.configurations[sampleRateIndex].trueSampleRate * 1000;
 
-            uiFiltering.sampleRateChange(!passFiltersObserved, !centreObserved, sampleRate);
             changeFunction();
 
         });
@@ -67,10 +73,17 @@ function addRadioButtonListeners (changeFunction) {
 
 exports.prepareUI = (changeFunction) => {
 
-    splitDurationInput.addChangeFunction(recordingDurationInput, () => {
+    splitDurationInput.addChangeFunction(recordingDurationGain1Input, () => {
 
         changeFunction();
-        checkRecordingDuration();
+        checkRecordingDurationGain1();
+
+    });
+    
+    splitDurationInput.addChangeFunction(recordingDurationGain2Input, () => {
+
+        changeFunction();
+        checkRecordingDurationGain2();
 
     });
 
@@ -99,6 +112,12 @@ exports.prepareUI = (changeFunction) => {
 
     });
 
+    splitDurationInput.addChangeFunction(sleepDurationBetweenInput, () => {
+
+        changeFunction();
+
+    });
+
     dutyCheckBox.addEventListener('change', () => {
 
         updateDutyCycleUI();
@@ -106,26 +125,11 @@ exports.prepareUI = (changeFunction) => {
 
     });
 
-    addRadioButtonListeners(changeFunction);
-
-    updateDutyCycleUI();
-
-    uiFiltering.prepareUI(changeFunction, checkRecordingDuration, () => {
-
-        const sampleRateIndex = getSelectedRadioValue('sample-rate-radio');
-        const sampleRate = constants.configurations[sampleRateIndex].trueSampleRate * 1000;
-
-        // If a Goertzel value has been changed, don't rescale the values to defaults as sample rate changes
-        const passFiltersObserved = uiFiltering.getPassFiltersObserved();
-        const centreObserved = uiFiltering.getCentreObserved();
-        uiFiltering.sampleRateChange(!passFiltersObserved, !centreObserved, sampleRate);
-
-    });
-
-    uiAdvanced.prepareUI(changeFunction);
 
     splitDurationInput.setTotalValue(sleepDurationInput, 5);
-    splitDurationInput.setTotalValue(recordingDurationInput, 55);
+    splitDurationInput.setTotalValue(recordingDurationGain1Input, 55);
+    splitDurationInput.setTotalValue(recordingDurationGain2Input, 0);
+    splitDurationInput.setTotalValue(sleepDurationBetweenInput, 0);
 
 };
 
@@ -145,6 +149,7 @@ exports.getSettings = () => {
         recordDurationGain1: splitDurationInput.getValue(recordingDurationGain1Input),
         recordDurationGain2: splitDurationInput.getValue(recordingDurationGain2Input),
         sleepDuration: splitDurationInput.getValue(sleepDurationInput),
+        sleepDurationBetweenGains: splitDurationInput.getValue(sleepDurationBetweenInput),
         requireAcousticConfig: uiAdvanced.isAcousticConfigRequired(),
         dailyFolders: uiAdvanced.isDailyFolderEnabled(),
         displayVoltageRange: voltageRangeCheckBox.checked,
@@ -173,6 +178,7 @@ exports.fillUI = (settings) => {
     const sampleRate = constants.configurations[sampleRateIndex].trueSampleRate * 1000;
 
     splitDurationInput.setTotalValue(sleepDurationInput, settings.sleepDuration);
+    splitDurationInput.setTotalValue(sleepDurationBetweenInput, settings.sleepDurationBetweenGains);
     splitDurationInput.setTotalValue(recordingDurationGain1Input, settings.recordDurationGain1);
     splitDurationInput.setTotalValue(recordingDurationGain2Input, settings.recordDurationGain2);
 

@@ -274,20 +274,7 @@ function checkVersionCompatibility () {
 
     switch (classification) {
 
-    case constants.FIRMWARE_OFFICIAL_RELEASE:
-    case constants.FIRMWARE_OFFICIAL_RELEASE_CANDIDATE:
-    
-        versionWarningTitle = 'Firmware update recommended';
-        versionWarningText = 'Update to at least version ' + constants.latestFirmwareVersionString + ' of AudioMoth-Firmware-Basic firmware to use all the features of this version of the AudioMoth Configuration App.';
-        
-        break;
-
-    case constants.FIRMWARE_CUSTOM_EQUIVALENT:
-        
-        trueVersionArr = getEquivalentVersion(firmwareDescription);
-
-        versionWarningTitle = 'Unsupported features';
-        versionWarningText = 'The firmware installed on your AudioMoth does not allow you to use all the features of this version of the AudioMoth Configuration App.';
+    case constants.FIRMWARE_CUSTOM:
         
         break;
 
@@ -304,7 +291,9 @@ function checkVersionCompatibility () {
                 dialog.showMessageBoxSync(BrowserWindow.getFocusedWindow(), {
                     type: 'warning',
                     title: 'Unsupported firmware',
-                    message: 'The firmware installed on your AudioMoth is not supported by the AudioMoth Configuration App.'
+                    message: 'The firmware installed on your AudioMoth is not supported by the AudioMoth Configuration App.  This is a custom configuration app for custom Audiomoth-DualGain firmware and does not support the official release or other custom firmware'
+
+
                 });
 
             }, 100);
@@ -882,6 +871,7 @@ function getCurrentConfiguration () {
     config.recordDurationGain1 = settings.recordDurationGain1;
     config.recordDurationGain2 = settings.recordDurationGain2;
     config.sleepDuration = settings.sleepDuration;
+    config.sleepDurationBetweenGains = settings.sleepDurationBetweenGains;
     config.dutyEnabled = settings.dutyEnabled;
 
     config.firstRecordingDateEnabled = uiSchedule.isFirstRecordingDateEnabled();
@@ -932,7 +922,7 @@ electron.ipcRenderer.on('load', () => {
 
     const currentConfig = getCurrentConfiguration();
 
-    saveLoad.loadConfiguration(currentConfig, (timePeriods, ledEnabled, batteryLevelCheckEnabled, sampleRateIndex, gain1, gain2, dutyEnabled, recordDurationGain1, recordDurationGain2, sleepDuration, localTime, customTimeZoneOffset, firstRecordingDateEnabled, firstRecordingDate, lastRecordingDateEnabled, lastRecordingDate, requireAcousticConfig, displayVoltageRange, energySaverModeEnabled, disable48DCFilter, lowGainRangeEnabled, dailyFolders) => {
+    saveLoad.loadConfiguration(currentConfig, (timePeriods, ledEnabled, batteryLevelCheckEnabled, sampleRateIndex, gain1, gain2, dutyEnabled, recordDurationGain1, recordDurationGain2, sleepDuration, sleepDurationBetweenGains, localTime, customTimeZoneOffset, firstRecordingDateEnabled, firstRecordingDate, lastRecordingDateEnabled, lastRecordingDate, requireAcousticConfig, displayVoltageRange, energySaverModeEnabled, disable48DCFilter, lowGainRangeEnabled, dailyFolders) => {
 
         document.activeElement.blur();
 
@@ -1013,6 +1003,7 @@ electron.ipcRenderer.on('load', () => {
             recordDurationGain1,
             recordDurationGain2,
             sleepDuration,
+            sleepDurationBetweenGains,
             dailyFolders,
             displayVoltageRange,
             energySaverModeEnabled,

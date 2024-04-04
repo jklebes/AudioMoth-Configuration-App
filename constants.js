@@ -123,37 +123,20 @@ exports.oldConfigurations = [{
 }];
 
 /* Packet lengths for each version */
+/* AudioMoth-DualGain */
 
 exports.packetLengthVersions = [{
-    firmwareVersion: '0.0.0',
-    packetLength: 39
-}, {
-    firmwareVersion: '1.2.0',
-    packetLength: 40
-}, {
-    firmwareVersion: '1.2.1',
-    packetLength: 42
-}, {
-    firmwareVersion: '1.2.2',
-    packetLength: 43
-}, {
-    firmwareVersion: '1.4.0',
-    packetLength: 58
-}, {
-    firmwareVersion: '1.5.0',
-    packetLength: 59
-}, {
-    firmwareVersion: '1.6.0',
-    packetLength: 62
+    firmwareVersion: '1.0.1',
+    packetLength: 39 // TODO
 }];
 
 const FIRMWARE_OFFICIAL_RELEASE = 0;
 const FIRMWARE_OFFICIAL_RELEASE_CANDIDATE = 1;
-const FIRMWARE_CUSTOM_EQUIVALENT = 2;
+const FIRMWARE_CUSTOM = 2;
 const FIRMWARE_UNSUPPORTED = 3;
 exports.FIRMWARE_OFFICIAL_RELEASE = FIRMWARE_OFFICIAL_RELEASE;
 exports.FIRMWARE_OFFICIAL_RELEASE_CANDIDATE = FIRMWARE_OFFICIAL_RELEASE_CANDIDATE;
-exports.FIRMWARE_CUSTOM_EQUIVALENT = FIRMWARE_CUSTOM_EQUIVALENT;
+exports.FIRMWARE_CUSTOM = FIRMWARE_CUSTOM;
 exports.FIRMWARE_UNSUPPORTED = FIRMWARE_UNSUPPORTED;
 
 const EQUIVALENCE_REGEX = /E[0-9]+\.[0-9]+\.[0-9]+/g;
@@ -167,21 +150,19 @@ exports.getFirmwareClassification = (desc) => {
 
     if (desc === 'AudioMoth-Firmware-Basic') {
 
-        return FIRMWARE_OFFICIAL_RELEASE;
+        return FIRMWARE_UNSUPPORTED; //this config app only for dual gain custom firmware
 
     }
 
     if (desc.replace(/-RC\d+$/, '-RC') === 'AudioMoth-Firmware-Basic-RC') {
 
-        return FIRMWARE_OFFICIAL_RELEASE_CANDIDATE;
+        return FIRMWARE_UNSUPPORTED;
 
     }
 
-    const foundEquivalence = desc.match(EQUIVALENCE_REGEX);
+    if (desc === 'AudioMoth-DualGain') {
 
-    if (foundEquivalence) {
-
-        return FIRMWARE_CUSTOM_EQUIVALENT;
+        return FIRMWARE_CUSTOM;
 
     }
 
@@ -191,8 +172,8 @@ exports.getFirmwareClassification = (desc) => {
 
 /* Version number for the latest firmware */
 
-exports.latestFirmwareVersionArray = ['1', '9', '0'];
-exports.latestFirmwareVersionString = '1.9.0';
+exports.latestFirmwareVersionArray = ['1', '0', '1'];
+exports.latestFirmwareVersionString = '1.0.1';
 
 /* Time zone modes */
 
