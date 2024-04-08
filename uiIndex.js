@@ -195,7 +195,6 @@ async function getAudioMothPacket () {
         const batteryState = await callWithRetry(getBatteryState, null, DEFAULT_RETRY_INTERVAL, MAXIMUM_RETRIES);
 
         /* No exceptions have occurred so update display */
-
         if (id !== previousID) {
 
             firmwareWarningShown = false;
@@ -488,7 +487,6 @@ function configureDevice () {
 
     packet[index++] = settings.gain1;
      
-
     packet[index++] = settings.gain2;
     
 
@@ -514,13 +512,31 @@ function configureDevice () {
     writeLittleEndianBytes(packet, index, 2, settings.sleepDuration);
     index += 2;
 
+    writeLittleEndianBytes(packet, index, 2, settings.sleepDurationBetweenGains);
+    index += 2;
+
     writeLittleEndianBytes(packet, index, 2, settings.recordDurationGain1);
     index += 2;
 
     writeLittleEndianBytes(packet, index, 2, settings.recordDurationGain2);
     index += 2;
+ 
+    // all bools here, into Byte 22
 
-    packet[index++] = ledCheckbox.checked ? 1 : 0;
+    let packedByte0 = ledCheckbox.checked & 0b1;
+    /* Low voltage cutoff is always enabled */
+    packedByte0 |= (1 & 0b1) << 1;
+    packedByte0 |= (batteryLevelCheckbox.checked & 0b1 ) << 2;
+    packedByte0 |= (settings.dutyEnabled & 0b1 ) << 3; //Duty cycle disabled (default value = 0) 
+    /* Whether to use NiMH/LiPo voltage range for battery level indication */
+    packedByte0 |= (settings.energySaverModeEnabled & 0b1 ) << 4; 
+    /* Whether to turn off the 48Hz DC blocking filter which is on by default */
+    packedByte0 |= (settings.disable48DCFilter & 0b1 ) << 5;
+    /* Whether to enable the low gain range */
+    packedByte0 |= (settings.lowGainRangeEnabled & 0b1 ) << 6;
+    /* Whether to create a new folder each day to store files */
+    packedByte0 |= (settings.dailyFolders & 0b1 ) << 7;
+    packet[index++] = packedByte0;
 
     let timePeriods;
 
@@ -569,19 +585,9 @@ function configureDevice () {
 
     packet[index++] = offsetHours;
 
-    /* Low voltage cutoff is always enabled */
-
-    packet[index++] = 1;
-
-    packet[index++] = batteryLevelCheckbox.checked ? 0 : 1;
-
     /* For non-integer timeZones */
 
     packet[index++] = offsetMins;
-
-    /* Duty cycle disabled (default value = 0) */
-
-    packet[index++] = settings.dutyEnabled ? 0 : 1;
 
     /* Start/stop dates */
 
@@ -627,33 +633,12 @@ function configureDevice () {
 
     writeLittleEndianBytes(packet, index, 4, latestRecordingTime);
     index += 4;
+    
+    let packedByte1 = settings.requireAcousticConfig & 0b1;
+    packedByte1 |= (settings.displayVoltageRange & 0b1) << 1;
+    packet[index++] = packedByte1;
 
-
-    let packedValue0 = requireAcousticConfig & 0b1;
-    packedValue0 |= (displayVoltageRange & 0b1) << 1;
-    packedValue0 |= (minimumThresholdDuration & 0b111111) << 2;
-
-    packet[index++] = packedValue0;
-
-    /* Whether to use NiMH/LiPo voltage range for battery level indication */
-    const energySaverModeEnabled = settings.energySaverModeEnabled ? 1 : 0;
-
-    /* Whether to turn off the 48Hz DC blocking filter which is on by default */
-    const disable48DCFilter = settings.disable48DCFilter ? 1 : 0;
-
-    /* Whether to enable the low gain range */
-    const lowGainRangeEnabled = settings.lowGainRangeEnabled ? 1 : 0;
-
-    /* Whether to create a new folder each day to store files */
-    const dailyFolders = settings.dailyFolders ? 1 : 0;
-
-    let packedByte3 = (energySaverModeEnabled & 0b1) & 1;
-    packedByte3 |= (lowGainRangeEnabled & 0b1) << 3;
-    packedByte3 |= (dailyFolders & 0b1) << 5;
-
-    packet[index++] = packedByte3;
-
-    console.log('Packet length: ', index);
+    console.log('Packet length: ', index); //expect 50 in DualGain configuration app
 
     /* Send packet to device */
 
@@ -922,7 +907,7 @@ electron.ipcRenderer.on('load', () => {
 
     const currentConfig = getCurrentConfiguration();
 
-    saveLoad.loadConfiguration(currentConfig, (timePeriods, ledEnabled, batteryLevelCheckEnabled, sampleRateIndex, gain1, gain2, dutyEnabled, recordDurationGain1, recordDurationGain2, sleepDuration, sleepDurationBetweenGains, localTime, customTimeZoneOffset, firstRecordingDateEnabled, firstRecordingDate, lastRecordingDateEnabled, lastRecordingDate, requireAcousticConfig, displayVoltageRange, energySaverModeEnabled, disable48DCFilter, lowGainRangeEnabled, dailyFolders) => {
+    saveLoad.loadConfiguration(currentConfig, (timePeriods, ledEnabled, batteryLevelCheckEnabled, sampleRateIndex, gain1, gain2, dutyEnabled, sleepDuration, sleepDurationBetweenGains, ecordDurationGain1, recordDurationGain2, localTime, customTimeZoneOffset, firstRecordingDateEnabled, firstRecordingDate, lastRecordingDateEnabled, lastRecordingDate, requireAcousticConfig, displayVoltageRange, energySaverModeEnabled, disable48DCFilter, lowGainRangeEnabled, dailyFolders) => {
 
         document.activeElement.blur();
 

@@ -127,7 +127,7 @@ exports.oldConfigurations = [{
 
 exports.packetLengthVersions = [{
     firmwareVersion: '1.0.1',
-    packetLength: 39 // TODO
+    packetLength: 55 
 }];
 
 const FIRMWARE_OFFICIAL_RELEASE = 0;

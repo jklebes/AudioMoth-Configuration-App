@@ -79,6 +79,7 @@ typedef struct {
     uint32_t sampleRate;
     uint8_t sampleRateDivider;
     uint16_t sleepDuration;
+    uint16_t sleepDurationBetweenGains;
     uint16_t recordDurationGain1;
     uint16_t recordDurationGain2;
     uint8_t enableLED;
@@ -107,64 +108,52 @@ exports.read = (packet) => {
 
     const time = audiomoth.convertFourBytesFromBufferToDate(packet, 0);
 
-    const gain = packet[4];
-    const clockDivider = packet[5];
-    const acquisitionCycles = packet[6];
-    const oversampleRate = packet[7];
+    const gain1 = packet[4];
+    const gain2 = packet[5];
+    const clockDivider = packet[6];
+    const acquisitionCycles = packet[7];
+    const oversampleRate = packet[8];
 
-    const sampleRate = fourBytesToNumber(packet, 8);
-    const sampleRateDivider = packet[12];
+    const sampleRate = fourBytesToNumber(packet, 9);
+    const sampleRateDivider = packet[13];
 
-    const sleepDuration = twoBytesToNumber(packet, 13);
-    const recordDuration = twoBytesToNumber(packet, 15);
+    const sleepDuration = twoBytesToNumber(packet, 14);
+    const sleepDurationBetweenGains = twoBytesToNumber(packet, 16);
+    const recordDurationGain1 = twoBytesToNumber(packet, 18);
+    const recordDurationGain2 = twoBytesToNumber(packet, 20);
 
-    const enableLED = packet[17];
+    const packedByte0 = packet[22];
+    const enableLED = packedByte0 & 1;
+    //const enableLowVoltageCutoff = (packedByte0 >> 1) & 1;
+    const disableBatteryLevelDisplay = (packedByte0 >> 2) & 1;
+    const disableSleepRecordCycle = (packedByte0 >> 3) & 1;
+    const energySaverModeEnabled = (packedByte0 >> 4) & 1;
+    const disable48DCFilter = (packedByte0 >> 5) & 1;
+    const lowGainRangeEnabled = (packedByte0 >> 6) & 1;
+    const dailyFolders = (packedByte0 >> 7 ) & 1;
 
-    const activeStartStopPeriods = packet[18];
+    const activeStartStopPeriods = packet[23];
     const startStopPeriods = [];
 
     for (let i = 0; i < activeStartStopPeriods; i += 1) {
 
-        const startMinutes = twoBytesToNumber(packet, 19 + 4 * i);
-        const endMinutes = twoBytesToNumber(packet, 21 + 4 * i);
+        const startMinutes = twoBytesToNumber(packet, 24 + 4 * i);
+        const endMinutes = twoBytesToNumber(packet, 26 + 4 * i);
 
         startStopPeriods.push({startMinutes, endMinutes});
 
     }
 
-    const timeZoneHours = packet[39] > 127 ? packet[39] - 256 : packet[39];
+    const timeZoneHours = packet[44] > 127 ? packet[44] - 256 : packet[44];
 
-    /* Low voltage cutoff is now always enabled */
+    const timeZoneMinutes = packet[45] > 127 ? packet[45] - 256 : packet[45];
 
-    // const enableLowVoltageCutoff = packet[40];
-
-    const disableBatteryLevelDisplay = packet[41];
-
-    const timeZoneMinutes = packet[42] > 127 ? packet[42] - 256 : packet[42];
-
-    const disableSleepRecordCycle = packet[43];
-
-    const earliestRecordingTime = audiomoth.convertFourBytesFromBufferToDate(packet, 44);
-    const latestRecordingTime = audiomoth.convertFourBytesFromBufferToDate(packet, 48);
-
-    const packedByte0 = packet[58];
-
-    const requireAcousticConfig = packedByte0 & 1;
-
-    const displayVoltageRange = (packedByte0 >> 1) & 1;
-
-    /* Read remaining settings */
-
-    const packedByte3 = packet[61];
-
-    const energySaverModeEnabled = packedByte3 & 1;
-
-    const disable48DCFilter = (packedByte3 >> 1) & 1;
-
-    const lowGainRangeEnabled = (packedByte3 >> 4) & 1;
-
-    const dailyFolders = (packedByte3 >> 6) & 1;
-
+    const earliestRecordingTime = audiomoth.convertFourBytesFromBufferToDate(packet, 46);
+    const latestRecordingTime = audiomoth.convertFourBytesFromBufferToDate(packet, 50);
+    
+    const packedByte1 = packet[54];
+    const requireAcousticConfig = packedByte1 & 1;
+    const displayVoltageRange = (packedByte1 >> 1) & 1;
 
     /* Display configuration */
 
@@ -183,6 +172,7 @@ exports.read = (packet) => {
 
     console.log('Enable sleep/record cyclic recording:', disableSleepRecordCycle === 0);
     console.log('Sleep duration:', sleepDuration);
+    console.log('Sleep duration between gains:', sleepDurationBetweenGains);
     console.log('Recording duration Gain1:', recordDurationGain1);
     console.log('Recording duration Gain2:', recordDurationGain2);
 

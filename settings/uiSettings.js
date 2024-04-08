@@ -21,22 +21,22 @@ const gain2RadioButtons = document.getElementsByName('gain2-radio');
 const dutyCheckBox = document.getElementById('duty-checkbox');
 
 const sleepDurationInput = splitDurationInput.create('sleep-duration-input', 0, true);
-const sleepDurationBetweenInput = splitDurationInput.create('sleep-duration-between-input', 0, true);
 const recordingDurationGain1Input = splitDurationInput.create('recording-duration-gain1-input', 1, true);
+const sleepDurationBetweenInput = splitDurationInput.create('sleep-duration-between-input', 0, true);
 const recordingDurationGain2Input = splitDurationInput.create('recording-duration-gain2-input', 0, true);
 
 // Define the next elements which tab navigation would jump to. This allows inputs to know whether or not to start from the final field if shift-tabbed to
 const recordingDurationGain1TextInput = splitDurationInput.getTextInput(recordingDurationGain1Input);
-const recordingDurationGain2TextInput = splitDurationInput.getTextInput(recordingDurationGain2Input);
 const sleepDurationBetweenTextInput = splitDurationInput.getTextInput(sleepDurationBetweenInput);
+const recordingDurationGain2TextInput = splitDurationInput.getTextInput(recordingDurationGain2Input);
 splitDurationInput.setNextElements(sleepDurationInput, [recordingDurationGain1TextInput]);
 splitDurationInput.setNextElements(recordingDurationGain1Input, [sleepDurationBetweenTextInput]);
 splitDurationInput.setNextElements(sleepDurationBetweenInput, [recordingDurationGain2TextInput]);
 
-const recordingDurationGain1Label = document.getElementById('recording-duration-gain1-label');
-const recordingDurationGain2Label = document.getElementById('recording-duration-gain2-label');
 const sleepDurationLabel = document.getElementById('sleep-duration-label');
+const recordingDurationGain1Label = document.getElementById('recording-duration-gain1-label');
 const sleepDurationBetweenLabel = document.getElementById('sleep-duration-between-label');
+const recordingDurationGain2Label = document.getElementById('recording-duration-gain2-label');
 
 const batteryLevelCheckbox = document.getElementById('battery-level-checkbox');
 const voltageRangeCheckBox = document.getElementById('voltage-range-checkbox');
@@ -76,14 +76,12 @@ exports.prepareUI = (changeFunction) => {
     splitDurationInput.addChangeFunction(recordingDurationGain1Input, () => {
 
         changeFunction();
-        checkRecordingDurationGain1();
 
     });
     
     splitDurationInput.addChangeFunction(recordingDurationGain2Input, () => {
 
         changeFunction();
-        checkRecordingDurationGain2();
 
     });
 
