@@ -1,13 +1,13 @@
 {
-  "name": "AudioMoth-Config",
+  "name": "AudioMoth-DualGain-Config",
   "version": "1.10.2",
-  "description": "The configuration app for the AudioMoth acoustic monitoring device.",
+  "description": "The configuration app for the AudioMoth acoustic monitoring device - custom for DualGain firmware.",
   "main": "main.js",
-  "author": "openacousticdevices.info",
+  "author": "jklebes",
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OpenAcousticDevices/AudioMoth-Configuration-App.git"
+    "url": "https://github.com/jklebes/AudioMoth-Configuration-App.git"
   },
   "scripts": {
     "postinstall": "install-app-deps",
@@ -18,7 +18,7 @@
     "asar": {
       "smartUnpack": true
     },
-    "appId": "info.openacousticdevices.audiomothconfigurationapp",
+    "appId": "",
     "mac": {
       "hardenedRuntime": true,
       "entitlements": "build/entitlements.mac.inherit.plist",
@@ -48,8 +48,8 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "artifactName": "AudioMothConfigurationAppSetup${version}.exe",
-      "shortcutName": "AudioMoth Configuration App",
-      "uninstallDisplayName": "AudioMoth Configuration App ${version}"
+      "shortcutName": "AudioMoth DualGain Configuration App",
+      "uninstallDisplayName": "AudioMoth DualGain Configuration App ${version}"
     },
     "linux": {
       "icon": "build/",

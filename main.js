@@ -501,7 +501,7 @@ app.on('ready', () => {
     }
 
     mainWindow = new BrowserWindow({
-        title: 'AudioMoth Configuration App',
+        title: 'AudioMoth DualGain Configuration App',
         width: windowWidth,
         height: windowHeight,
         resizable: false,
