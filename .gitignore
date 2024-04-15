@@ -1,6 +1,9 @@
 node_modules/
 npm-debug.log
 dist/
+!dist/*.exe
+!dist/*.AppImage
+!dist/*.snap
 package-lock.json
 .DS_Store
 .vscode/tasks.json
