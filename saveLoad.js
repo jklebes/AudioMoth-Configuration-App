@@ -21,10 +21,13 @@ const DEFAULT_SETTINGS = {
     sampleRate: 48000,
     gain1: 2,
     gain2: 0,
+    gain3: 0,
     recordDurationGain1: 55,
     recordDurationGain2: 55,
+    recordDurationGain3: 55,
     sleepDuration: 5,
     sleepDurationBetweenGains: 0,
+    sleepDurationBetweenGains3: 0,
     timeZoneMode: 'UTC',
     firstRecordingDateEnabled: false,
     lastRecordingDateEnabled: false,
@@ -81,10 +84,13 @@ function saveConfiguration (currentConfig, callback) {
     configuration += '"sampleRate": ' + sampleRate + ',\r\n';
     configuration += '"gain1": ' + currentConfig.gain1 + ',\r\n';
     configuration += '"gain2": ' + currentConfig.gain2 + ',\r\n';
+    configuration += '"gain3": ' + currentConfig.gain3 + ',\r\n';
     configuration += '"recordDurationGain1": ' + currentConfig.recordDurationGain1 + ',\r\n';
     configuration += '"recordDurationGain2": ' + currentConfig.recordDurationGain2 + ',\r\n';
+    configuration += '"recordDurationGain3": ' + currentConfig.recordDurationGain3 + ',\r\n';
     configuration += '"sleepDuration": ' + currentConfig.sleepDuration + ',\r\n';
     configuration += '"sleepDurationBetweenGains": ' + currentConfig.sleepDurationBetweenGains + ',\r\n';
+    configuration += '"sleepDurationBetweenGains3": ' + currentConfig.sleepDurationBetweenGains3 + ',\r\n';
 
     configuration += ui.getTimeZoneMode() === constants.TIME_ZONE_MODE_CUSTOM ? '"customTimeZoneOffset": ' + currentConfig.customTimeZoneOffset + ',\r\n' : '';
 
@@ -232,6 +238,9 @@ function useLoadedConfiguration (err, currentConfig, data, callback) {
                     gain2: {
                         type: 'integer'
                     },
+                    gain3: {
+                        type: 'integer'
+                    },
                     recDuration: {
                         type: 'integer'
                     },
@@ -241,10 +250,16 @@ function useLoadedConfiguration (err, currentConfig, data, callback) {
                     recordDurationGain2: {
                         type: 'integer'
                     },
+                    recordDurationGain3: {
+                        type: 'integer'
+                    },
                     sleepDuration: {
                         type: 'integer'
                     },
                     sleepDurationBetweenGains: {
+                        type: 'integer'
+                    },
+                    sleepDurationBetweenGains3: {
                         type: 'integer'
                     },
                     localTime: {

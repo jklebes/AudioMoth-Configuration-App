@@ -489,12 +489,14 @@ function configureDevice () {
      
     packet[index++] = settings.gain2;
     
+    packet[index++] = settings.gain3;
+    
 
     /* If equivalent firmware or unsupported firmware is present, use correct firmware version */
 
     const trueFirmwareVersion = getTrueFirmwareVersion();
 
-    const configurations = (isOlderSemanticVersion(trueFirmwareVersion, ['1', '4', '4']) && settings.sampleRateIndex < 3) ? constants.oldConfigurations : constants.configurations;
+    const configurations = (isOlderSemanticVersion(trueFirmwareVersion, ['1', '4', '5']) && settings.sampleRateIndex < 3) ? constants.oldConfigurations : constants.configurations;
 
     const sampleRateConfiguration = configurations[settings.sampleRateIndex];
 
@@ -515,10 +517,16 @@ function configureDevice () {
     writeLittleEndianBytes(packet, index, 2, settings.sleepDurationBetweenGains);
     index += 2;
 
+    writeLittleEndianBytes(packet, index, 2, settings.sleepDurationBetweenGains3);
+    index += 2;
+
     writeLittleEndianBytes(packet, index, 2, settings.recordDurationGain1);
     index += 2;
 
     writeLittleEndianBytes(packet, index, 2, settings.recordDurationGain2);
+    index += 2;
+
+    writeLittleEndianBytes(packet, index, 2, settings.recordDurationGain3);
     index += 2;
  
     // all bools here, into Byte 22
@@ -853,10 +861,13 @@ function getCurrentConfiguration () {
     config.sampleRateIndex = settings.sampleRateIndex;
     config.gain1 = settings.gain1;
     config.gain2 = settings.gain2;
+    config.gain3 = settings.gain3;
     config.recordDurationGain1 = settings.recordDurationGain1;
     config.recordDurationGain2 = settings.recordDurationGain2;
+    config.recordDurationGain3 = settings.recordDurationGain3;
     config.sleepDuration = settings.sleepDuration;
     config.sleepDurationBetweenGains = settings.sleepDurationBetweenGains;
+    config.sleepDurationBetweenGains3 = settings.sleepDurationBetweenGains3;
     config.dutyEnabled = settings.dutyEnabled;
 
     config.firstRecordingDateEnabled = uiSchedule.isFirstRecordingDateEnabled();
@@ -907,7 +918,7 @@ electron.ipcRenderer.on('load', () => {
 
     const currentConfig = getCurrentConfiguration();
 
-    saveLoad.loadConfiguration(currentConfig, (timePeriods, ledEnabled, batteryLevelCheckEnabled, sampleRateIndex, gain1, gain2, dutyEnabled, sleepDuration, sleepDurationBetweenGains, ecordDurationGain1, recordDurationGain2, localTime, customTimeZoneOffset, firstRecordingDateEnabled, firstRecordingDate, lastRecordingDateEnabled, lastRecordingDate, requireAcousticConfig, displayVoltageRange, energySaverModeEnabled, disable48DCFilter, lowGainRangeEnabled, dailyFolders) => {
+    saveLoad.loadConfiguration(currentConfig, (timePeriods, ledEnabled, batteryLevelCheckEnabled, sampleRateIndex, gain1, gain2, gain3,  dutyEnabled, sleepDuration, sleepDurationBetweenGains, sleepDurationBetweenGains3, recordDurationGain1, recordDurationGain2, recordDurationGain3, localTime, customTimeZoneOffset, firstRecordingDateEnabled, firstRecordingDate, lastRecordingDateEnabled, lastRecordingDate, requireAcousticConfig, displayVoltageRange, energySaverModeEnabled, disable48DCFilter, lowGainRangeEnabled, dailyFolders) => {
 
         document.activeElement.blur();
 
@@ -984,11 +995,14 @@ electron.ipcRenderer.on('load', () => {
             sampleRateIndex,
             gain1,
             gain2,
+            gain3,
             dutyEnabled,
             recordDurationGain1,
             recordDurationGain2,
+            recordDurationGain3,
             sleepDuration,
             sleepDurationBetweenGains,
+            sleepDurationBetweenGains3,
             dailyFolders,
             displayVoltageRange,
             energySaverModeEnabled,
