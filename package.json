@@ -1,6 +1,6 @@
 {
   "name": "AudioMoth-DualGain-Config",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "description": "The configuration app for the AudioMoth acoustic monitoring device - custom for DualGain firmware.",
   "main": "main.js",
   "author": "jklebes",
