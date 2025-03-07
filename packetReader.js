@@ -129,7 +129,7 @@ exports.read = (packet) => {
 
     const packedByte0 = packet[27];
     const enableLED = packedByte0 & 1;
-    //const enableLowVoltageCutoff = (packedByte0 >> 1) & 1;
+    const enableLowVoltageCutoff = (packedByte0 >> 1) & 1;
     const disableBatteryLevelDisplay = (packedByte0 >> 2) & 1;
     const disableSleepRecordCycle = (packedByte0 >> 3) & 1;
     const energySaverModeEnabled = (packedByte0 >> 4) & 1;

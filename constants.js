@@ -126,7 +126,7 @@ exports.oldConfigurations = [{
 /* AudioMoth-DualGain */
 
 exports.packetLengthVersions = [{
-    firmwareVersion: '1.1.5',
+    firmwareVersion: '1.1.6',
     packetLength: 55 
 }];
 
