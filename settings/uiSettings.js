@@ -17,7 +17,7 @@ const splitDurationInput = require('./splitDurationInput.js');
 const sampleRadioButtons = document.getElementsByName('sample-rate-radio');
 const gain1RadioButtons = document.getElementsByName('gain1-radio');
 const gain2RadioButtons = document.getElementsByName('gain2-radio');
-const gain3RadioButtons = document.getElementsByName('gain2-radio');
+const gain3RadioButtons = document.getElementsByName('gain3-radio');
 
 const dutyCheckBox = document.getElementById('duty-checkbox');
 
@@ -166,13 +166,14 @@ exports.getSettings = () => {
         sampleRateIndex: parseInt(getSelectedRadioValue('sample-rate-radio')),
         gain1: parseInt(getSelectedRadioValue('gain1-radio')),
         gain2: parseInt(getSelectedRadioValue('gain2-radio')),
-        gain2: parseInt(getSelectedRadioValue('gain3-radio')),
+        gain3: parseInt(getSelectedRadioValue('gain3-radio')),
         dutyEnabled: dutyCheckBox.checked,
         recordDurationGain1: splitDurationInput.getValue(recordingDurationGain1Input),
         recordDurationGain2: splitDurationInput.getValue(recordingDurationGain2Input),
-        recordDurationGain2: splitDurationInput.getValue(recordingDurationGain3Input),
+        recordDurationGain3: splitDurationInput.getValue(recordingDurationGain3Input),
         sleepDuration: splitDurationInput.getValue(sleepDurationInput),
         sleepDurationBetweenGains: splitDurationInput.getValue(sleepDurationBetweenInput),
+        sleepDurationBetweenGains3: splitDurationInput.getValue(sleepDurationBetween3Input),
         requireAcousticConfig: uiAdvanced.isAcousticConfigRequired(),
         dailyFolders: uiAdvanced.isDailyFolderEnabled(),
         displayVoltageRange: voltageRangeCheckBox.checked,
@@ -192,7 +193,7 @@ exports.fillUI = (settings) => {
     sampleRadioButtons[settings.sampleRateIndex].checked = true;
     gain1RadioButtons[settings.gain1].checked = true;
     gain2RadioButtons[settings.gain2].checked = true;
-    gain2RadioButtons[settings.gain3].checked = true;
+    gain3RadioButtons[settings.gain3].checked = true;
 
     dutyCheckBox.checked = settings.dutyEnabled;
     updateDutyCycleUI();
@@ -202,7 +203,7 @@ exports.fillUI = (settings) => {
 
     splitDurationInput.setTotalValue(sleepDurationInput, settings.sleepDuration);
     splitDurationInput.setTotalValue(sleepDurationBetweenInput, settings.sleepDurationBetweenGains);
-    splitDurationInput.setTotalValue(sleepDurationBetween3Input, settings.sleepDurationBetween3Gains);
+    splitDurationInput.setTotalValue(sleepDurationBetween3Input, settings.sleepDurationBetweenGains3);
     splitDurationInput.setTotalValue(recordingDurationGain1Input, settings.recordDurationGain1);
     splitDurationInput.setTotalValue(recordingDurationGain2Input, settings.recordDurationGain2);
     splitDurationInput.setTotalValue(recordingDurationGain3Input, settings.recordDurationGain3);

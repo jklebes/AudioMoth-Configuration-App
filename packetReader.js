@@ -73,6 +73,7 @@ typedef struct {
     uint32_t time;
     AM_gainSetting_t gain1;
     AM_gainSetting_t gain2;
+    AM_gainSetting_t gain3;
     uint8_t clockDivider;
     uint8_t acquisitionCycles;
     uint8_t oversampleRate;
@@ -80,8 +81,10 @@ typedef struct {
     uint8_t sampleRateDivider;
     uint16_t sleepDuration;
     uint16_t sleepDurationBetweenGains;
+    uint16_t sleepDurationBetweenGains3;
     uint16_t recordDurationGain1;
     uint16_t recordDurationGain2;
+    uint16_t recordDurationGain3;
     uint8_t enableLED;
     uint8_t activeStartStopPeriods;
     startStopPeriod_t startStopPeriods[MAX_START_STOP_PERIODS];
@@ -109,19 +112,22 @@ exports.read = (packet) => {
 
     const gain1 = packet[4];
     const gain2 = packet[5];
-    const clockDivider = packet[6];
-    const acquisitionCycles = packet[7];
-    const oversampleRate = packet[8];
+    const gain3 = packet[6];
+    const clockDivider = packet[7];
+    const acquisitionCycles = packet[8];
+    const oversampleRate = packet[9];
 
-    const sampleRate = fourBytesToNumber(packet, 9);
-    const sampleRateDivider = packet[13];
+    const sampleRate = fourBytesToNumber(packet, 10);
+    const sampleRateDivider = packet[14];
 
-    const sleepDuration = twoBytesToNumber(packet, 14);
-    const sleepDurationBetweenGains = twoBytesToNumber(packet, 16);
-    const recordDurationGain1 = twoBytesToNumber(packet, 18);
-    const recordDurationGain2 = twoBytesToNumber(packet, 20);
+    const sleepDuration = twoBytesToNumber(packet, 15);
+    const sleepDurationBetweenGains = twoBytesToNumber(packet, 17);
+    const sleepDurationBetweenGains3 = twoBytesToNumber(packet, 19);
+    const recordDurationGain1 = twoBytesToNumber(packet, 21);
+    const recordDurationGain2 = twoBytesToNumber(packet, 23);
+    const recordDurationGain3 = twoBytesToNumber(packet, 25);
 
-    const packedByte0 = packet[22];
+    const packedByte0 = packet[27];
     const enableLED = packedByte0 & 1;
     //const enableLowVoltageCutoff = (packedByte0 >> 1) & 1;
     const disableBatteryLevelDisplay = (packedByte0 >> 2) & 1;
@@ -130,26 +136,26 @@ exports.read = (packet) => {
     const disable48DCFilter = (packedByte0 >> 5) & 1;
     const dailyFolders = (packedByte0 >> 6 ) & 1;
 
-    const activeStartStopPeriods = packet[23];
+    const activeStartStopPeriods = packet[28];
     const startStopPeriods = [];
 
     for (let i = 0; i < activeStartStopPeriods; i += 1) {
 
-        const startMinutes = twoBytesToNumber(packet, 24 + 4 * i);
-        const endMinutes = twoBytesToNumber(packet, 26 + 4 * i);
+        const startMinutes = twoBytesToNumber(packet, 29 + 4 * i);
+        const endMinutes = twoBytesToNumber(packet, 30 + 4 * i);
 
         startStopPeriods.push({startMinutes, endMinutes});
 
     }
 
-    const timeZoneHours = packet[44] > 127 ? packet[44] - 256 : packet[44];
+    const timeZoneHours = packet[49] > 127 ? packet[49] - 256 : packet[49];
 
-    const timeZoneMinutes = packet[45] > 127 ? packet[45] - 256 : packet[45];
+    const timeZoneMinutes = packet[50] > 127 ? packet[50] - 256 : packet[50];
 
-    const earliestRecordingTime = audiomoth.convertFourBytesFromBufferToDate(packet, 46);
-    const latestRecordingTime = audiomoth.convertFourBytesFromBufferToDate(packet, 50);
+    const earliestRecordingTime = audiomoth.convertFourBytesFromBufferToDate(packet, 51);
+    const latestRecordingTime = audiomoth.convertFourBytesFromBufferToDate(packet, 55);
     
-    const packedByte1 = packet[54];
+    const packedByte1 = packet[59];
     const requireAcousticConfig = packedByte1 & 1;
     const displayVoltageRange = (packedByte1 >> 1) & 1;
 
@@ -162,6 +168,7 @@ exports.read = (packet) => {
 
     console.log('Gain1:', gain1);
     console.log('Gain2:', gain2);
+    console.log('Gain3:', gain3);
     console.log('Clock divider:', clockDivider);
     console.log('Acquisition cycles:', acquisitionCycles);
     console.log('Oversample rate:', oversampleRate);
@@ -171,8 +178,10 @@ exports.read = (packet) => {
     console.log('Enable sleep/record cyclic recording:', disableSleepRecordCycle === 0);
     console.log('Sleep duration:', sleepDuration);
     console.log('Sleep duration between gains:', sleepDurationBetweenGains);
+    console.log('Sleep duration between gains 3:', sleepDurationBetweenGains3);
     console.log('Recording duration Gain1:', recordDurationGain1);
     console.log('Recording duration Gain2:', recordDurationGain2);
+    console.log('Recording duration Gain3:', recordDurationGain3);
 
     console.log('Enable LED:', enableLED === 1);
     console.log('Enable battery level indication:', disableBatteryLevelDisplay === 0);

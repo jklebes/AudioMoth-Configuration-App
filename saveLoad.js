@@ -323,11 +323,14 @@ function useLoadedConfiguration (err, currentConfig, data, callback) {
             isMissingValues |= (typeof jsonObj.batteryLevelCheckEnabled === 'undefined');
             isMissingValues |= (typeof jsonObj.gain1 === 'undefined');
             isMissingValues |= (typeof jsonObj.gain2 === 'undefined');
+            isMissingValues |= (typeof jsonObj.gain3 === 'undefined');
             isMissingValues |= (typeof jsonObj.dutyEnabled === 'undefined');
             isMissingValues |= (typeof jsonObj.sleepDuration === 'undefined');
             isMissingValues |= (typeof jsonObj.sleepDurationBetweenGains === 'undefined');
+            isMissingValues |= (typeof jsonObj.sleepDurationBetweenGains3 === 'undefined');
             isMissingValues |= (typeof jsonObj.recordDurationGain1 === 'undefined');
             isMissingValues |= (typeof jsonObj.recordDurationGain2 === 'undefined');
+            isMissingValues |= (typeof jsonObj.recordDurationGain3 === 'undefined');
             isMissingValues |= (typeof jsonObj.dailyFolders === 'undefined');
             isMissingValues |= (typeof jsonObj.displayVoltageRange === 'undefined');
             isMissingValues |= (typeof jsonObj.minimumAmplitudeThresholdDuration === 'undefined');
@@ -402,16 +405,21 @@ function useLoadedConfiguration (err, currentConfig, data, callback) {
             gain1 = (typeof gain1 === 'undefined') ? replacementValues.gain1 : gain1;
             let gain2 = (typeof jsonObj.gain2 === 'undefined') ? jsonObj.gainIndex : jsonObj.gain2;
             gain2 = (typeof gain2 === 'undefined') ? replacementValues.gain2 : gain2;
+            let gain3 = (typeof jsonObj.gain3 === 'undefined') ? jsonObj.gainIndex : jsonObj.gain3;
+            gain3 = (typeof gain3 === 'undefined') ? replacementValues.gain3 : gain3;
 
             const dutyEnabled = (typeof jsonObj.dutyEnabled === 'undefined') ? replacementValues.dutyEnabled : jsonObj.dutyEnabled;
 
             const sleepDuration = (typeof jsonObj.sleepDuration === 'undefined') ? replacementValues.sleepDuration : jsonObj.sleepDuration;
             const sleepDurationBetweenGains = (typeof jsonObj.sleepDurationBetweenGains === 'undefined') ? replacementValues.sleepDurationBetweenGains : jsonObj.sleepDurationBetweenGains;
+            const sleepDurationBetweenGains3 = (typeof jsonObj.sleepDurationBetweenGains3 === 'undefined') ? replacementValues.sleepDurationBetweenGains3 : jsonObj.sleepDurationBetweenGains3;
 
             let recordDurationGain1 = (typeof jsonObj.recordDurationGain1 === 'undefined') ? jsonObj.recDurationGains1 : jsonObj.recordDurationGains1;
-            recordDurationGain1 = (typeof recordDurationGain1 === 'undefined') ? replacementValues.recordDurationGain2 : recordDurationGain1;
+            recordDurationGain1 = (typeof recordDurationGain1 === 'undefined') ? replacementValues.recordDurationGain1 : recordDurationGain1;
             let recordDurationGain2 = (typeof jsonObj.recordDurationGain2 === 'undefined') ? jsonObj.recDurationGains2 : jsonObj.recordDurationGains2;
             recordDurationGain2 = (typeof recordDurationGain2 === 'undefined') ? replacementValues.recordDurationGain2 : recordDurationGain2;
+            let recordDurationGain3 = (typeof jsonObj.recordDurationGain3 === 'undefined') ? jsonObj.recDurationGains3 : jsonObj.recordDurationGains3;
+            recordDurationGain3 = (typeof recordDurationGain3 === 'undefined') ? replacementValues.recordDurationGain3 : recordDurationGain3;
 
             /* Try to find time zone mode. If loading an older file try to parse the localTime setting */
 
@@ -514,7 +522,7 @@ function useLoadedConfiguration (err, currentConfig, data, callback) {
             const disable48DCFilter = (typeof jsonObj.disable48DCFilter === 'undefined') ? replacementValues.disable48DCFilter : jsonObj.disable48DCFilter;
 
 
-            callback(timePeriods, ledEnabled, batteryLevelCheckEnabled, sampleRateIndex, gain1, gain2, dutyEnabled, sleepDuration, sleepDurationBetweensGains, ecordDurationGain1, recordDurationGain2, localTime, customTimeZoneOffset, firstRecordingDateEnabled, firstRecordingDate, lastRecordingDateEnabled, lastRecordingDate, passFiltersEnabled, requireAcousticConfig, displayVoltageRange, energySaverModeEnabled, disable48DCFilter,  dailyFolders);
+            callback(timePeriods, ledEnabled, batteryLevelCheckEnabled, sampleRateIndex, gain1, gain2, gain3, dutyEnabled, sleepDuration, sleepDurationBetweensGains, sleepDurationBetweenGains3, recordDurationGain1, recordDurationGain2, recordDurationGain3, localTime, customTimeZoneOffset, firstRecordingDateEnabled, firstRecordingDate, lastRecordingDateEnabled, lastRecordingDate, passFiltersEnabled, requireAcousticConfig, displayVoltageRange, energySaverModeEnabled, disable48DCFilter,  dailyFolders);
 
             version = version === '0.0.0' ? '< 1.5.0' : version;
 

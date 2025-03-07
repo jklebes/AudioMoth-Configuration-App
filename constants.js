@@ -126,7 +126,7 @@ exports.oldConfigurations = [{
 /* AudioMoth-DualGain */
 
 exports.packetLengthVersions = [{
-    firmwareVersion: '1.0.1',
+    firmwareVersion: '1.1.5',
     packetLength: 55 
 }];
 
@@ -160,7 +160,7 @@ exports.getFirmwareClassification = (desc) => {
 
     }
 
-    if (desc === 'AudioMoth-DualGain') {
+    if (desc === 'AudioMoth-MultiGain') {
 
         return FIRMWARE_CUSTOM;
 

@@ -822,7 +822,7 @@ function updateLifeDisplayOnChange () {
 
     const settings = uiSettings.getSettings();
 
-    lifeDisplay.updateLifeDisplay(sortedPeriods, constants.configurations[settings.sampleRateIndex], settings.recordDurationGain1, settings.recordDurationGain2, settings.sleepDuration,settings.dutyEnabled, settings.energySaverModeEnabled );
+    lifeDisplay.updateLifeDisplay(sortedPeriods, constants.configurations[settings.sampleRateIndex], settings.recordDurationGain1, settings.sleepDuration, settings.dutyEnabled, settings.energySaverModeEnabled );
 
 }
 
