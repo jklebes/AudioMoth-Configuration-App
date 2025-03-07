@@ -96,7 +96,6 @@ typedef struct {
     AM_batteryLevelDisplayType_t batteryLevelDisplayType : 1;
     uint8_t enableEnergySaverMode : 1;
     uint8_t disable48HzDCBlockingFilter : 1;
-    uint8_t enableLowGainRange : 1;
     uint8_t enableDailyFolders : 1;
 } configSettings_t;
 
@@ -129,8 +128,7 @@ exports.read = (packet) => {
     const disableSleepRecordCycle = (packedByte0 >> 3) & 1;
     const energySaverModeEnabled = (packedByte0 >> 4) & 1;
     const disable48DCFilter = (packedByte0 >> 5) & 1;
-    const lowGainRangeEnabled = (packedByte0 >> 6) & 1;
-    const dailyFolders = (packedByte0 >> 7 ) & 1;
+    const dailyFolders = (packedByte0 >> 6 ) & 1;
 
     const activeStartStopPeriods = packet[23];
     const startStopPeriods = [];
@@ -200,8 +198,6 @@ exports.read = (packet) => {
     console.log('Energy saver mode enabled:', energySaverModeEnabled === 1);
 
     console.log('48 Hz DC blocking filter disabled:', disable48DCFilter === 1);
-
-    console.log('Low gain range enabled: ', lowGainRangeEnabled === 1);
 
     console.log('Daily folders enabled:', dailyFolders === 1);
 

@@ -177,7 +177,6 @@ exports.getSettings = () => {
         dailyFolders: uiAdvanced.isDailyFolderEnabled(),
         displayVoltageRange: voltageRangeCheckBox.checked,
         energySaverModeEnabled: uiAdvanced.isEnergySaverModeEnabled(),
-        lowGainRangeEnabled: uiAdvanced.isLowGainRangeEnabled(),
         disable48DCFilter: uiAdvanced.is48DCFilterDisabled(),
     };
 

@@ -36,7 +36,6 @@ const DEFAULT_SETTINGS = {
     dailyFolders: false,
     displayVoltageRange: false,
     energySaverModeEnabled: false,
-    lowGainRangeEnabled: false,
     disable48DCFilter: false,
 };
 
@@ -109,7 +108,6 @@ function saveConfiguration (currentConfig, callback) {
     configuration += '"version": \"' + versionString + '\",\r\n';
     configuration += '"energySaverModeEnabled": ' + currentConfig.energySaverModeEnabled + ',\r\n';
     configuration += '"disable48DCFilter": ' + currentConfig.disable48DCFilter + ',\r\n';
-    configuration += '"lowGainRangeEnabled": ' + currentConfig.lowGainRangeEnabled + ',\r\n';
     configuration += '}';
 
     const fileName = dialog.showSaveDialogSync({
@@ -298,9 +296,6 @@ function useLoadedConfiguration (err, currentConfig, data, callback) {
                     disable48DCFilter: {
                         type: 'boolean'
                     },
-                    lowGainRangeEnabled: {
-                        type: 'boolean'
-                    },
                 },
                 required: []
             };
@@ -339,7 +334,6 @@ function useLoadedConfiguration (err, currentConfig, data, callback) {
             isMissingValues |= (typeof jsonObj.amplitudeThresholdScale === 'undefined');
             isMissingValues |= (typeof jsonObj.energySaverModeEnabled === 'undefined');
             isMissingValues |= (typeof jsonObj.disable48DCFilter === 'undefined');
-            isMissingValues |= (typeof jsonObj.lowGainRangeEnabled === 'undefined');
 
             if (isMissingValues) {
 
@@ -519,10 +513,8 @@ function useLoadedConfiguration (err, currentConfig, data, callback) {
 
             const disable48DCFilter = (typeof jsonObj.disable48DCFilter === 'undefined') ? replacementValues.disable48DCFilter : jsonObj.disable48DCFilter;
 
-            const lowGainRangeEnabled = (typeof jsonObj.lowGainRangeEnabled === 'undefined') ? replacementValues.lowGainRangeEnabled : jsonObj.lowGainRangeEnabled;
 
-
-            callback(timePeriods, ledEnabled, batteryLevelCheckEnabled, sampleRateIndex, gain1, gain2, dutyEnabled, sleepDuration, sleepDurationBetweensGains, ecordDurationGain1, recordDurationGain2, localTime, customTimeZoneOffset, firstRecordingDateEnabled, firstRecordingDate, lastRecordingDateEnabled, lastRecordingDate, passFiltersEnabled, requireAcousticConfig, displayVoltageRange, energySaverModeEnabled, disable48DCFilter, lowGainRangeEnabled, dailyFolders);
+            callback(timePeriods, ledEnabled, batteryLevelCheckEnabled, sampleRateIndex, gain1, gain2, dutyEnabled, sleepDuration, sleepDurationBetweensGains, ecordDurationGain1, recordDurationGain2, localTime, customTimeZoneOffset, firstRecordingDateEnabled, firstRecordingDate, lastRecordingDateEnabled, lastRecordingDate, passFiltersEnabled, requireAcousticConfig, displayVoltageRange, energySaverModeEnabled, disable48DCFilter,  dailyFolders);
 
             version = version === '0.0.0' ? '< 1.5.0' : version;
 

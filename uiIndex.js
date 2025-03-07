@@ -540,8 +540,6 @@ function configureDevice () {
     packedByte0 |= (settings.energySaverModeEnabled & 0b1 ) << 4; 
     /* Whether to turn off the 48Hz DC blocking filter which is on by default */
     packedByte0 |= (settings.disable48DCFilter & 0b1 ) << 5;
-    /* Whether to enable the low gain range */
-    packedByte0 |= (settings.lowGainRangeEnabled & 0b1 ) << 6;
     /* Whether to create a new folder each day to store files */
     packedByte0 |= (settings.dailyFolders & 0b1 ) << 7;
     packet[index++] = packedByte0;
@@ -886,8 +884,6 @@ function getCurrentConfiguration () {
 
     config.disable48DCFilter = settings.disable48DCFilter;
 
-    config.lowGainRangeEnabled = settings.lowGainRangeEnabled;
-
     return config;
 
 }
@@ -918,7 +914,7 @@ electron.ipcRenderer.on('load', () => {
 
     const currentConfig = getCurrentConfiguration();
 
-    saveLoad.loadConfiguration(currentConfig, (timePeriods, ledEnabled, batteryLevelCheckEnabled, sampleRateIndex, gain1, gain2, gain3,  dutyEnabled, sleepDuration, sleepDurationBetweenGains, sleepDurationBetweenGains3, recordDurationGain1, recordDurationGain2, recordDurationGain3, localTime, customTimeZoneOffset, firstRecordingDateEnabled, firstRecordingDate, lastRecordingDateEnabled, lastRecordingDate, requireAcousticConfig, displayVoltageRange, energySaverModeEnabled, disable48DCFilter, lowGainRangeEnabled, dailyFolders) => {
+    saveLoad.loadConfiguration(currentConfig, (timePeriods, ledEnabled, batteryLevelCheckEnabled, sampleRateIndex, gain1, gain2, gain3,  dutyEnabled, sleepDuration, sleepDurationBetweenGains, sleepDurationBetweenGains3, recordDurationGain1, recordDurationGain2, recordDurationGain3, localTime, customTimeZoneOffset, firstRecordingDateEnabled, firstRecordingDate, lastRecordingDateEnabled, lastRecordingDate, requireAcousticConfig, displayVoltageRange, energySaverModeEnabled, disable48DCFilter, dailyFolders) => {
 
         document.activeElement.blur();
 
@@ -1007,7 +1003,6 @@ electron.ipcRenderer.on('load', () => {
             displayVoltageRange,
             energySaverModeEnabled,
             disable48DCFilter,
-            lowGainRangeEnabled,
         };
 
         uiSettings.fillUI(settings);
